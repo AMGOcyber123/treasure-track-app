@@ -6,15 +6,52 @@ generator client {
 }
 
 datasource db {
-    provider = "sqlite"
-    url      = env("DATABASE_URL")
+    provider  = "postgresql"
+    url       = env("DATABASE_URL")
+    directUrl = env("DIRECT_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+model User {
+    id           String        @id @default(uuid())
+    backAccounts BankAccount[]
+    category     Category[]
+    transaction  Transaction[]
+}
 
-    @@index([name])
+model BankAccount {
+    id            Int           @id @default(autoincrement())
+    accountNumber String
+    balance       BigInt
+    User          User          @relation(fields: [userId], references: [id])
+    userId        String
+    transaction   Transaction[]
+
+    @@unique([accountNumber, userId])
+}
+
+model Category {
+    id          Int           @id @default(autoincrement())
+    name        String
+    type        String
+    icon        String
+    iconColor   String
+    User        User          @relation(fields: [userId], references: [id])
+    userId      String
+    transaction Transaction[]
+
+    @@unique([name, type, userId])
+}
+
+model Transaction {
+    id            Int         @id @default(autoincrement())
+    date          DateTime
+    amount        BigInt
+    note          String
+    recipient     String
+    user          User?       @relation(fields: [userId], references: [id])
+    userId        String
+    bankAccount   BankAccount @relation(fields: [bankAccountId], references: [id])
+    bankAccountId Int
+    category      Category?   @relation(fields: [categoryId], references: [id])
+    categoryId    Int?
 }

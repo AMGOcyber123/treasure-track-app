@@ -1,19 +1,20 @@
+import { withPageAuthRequired } from '@auth0/nextjs-auth0/client';
 import React, { PropsWithChildren } from 'react';
-import Head from "next/head";
-import Header from "./Header";
+import Head from 'next/head';
+import Header from './Header';
 
 function Layout({ children }: PropsWithChildren) {
   return (
     <>
       <Head>
-        <title>Finance Dashboard</title>
+        <title>Track Treasure</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="relative h-screen overflow-hidden bg-neutral">
         <div className="flex items-start justify-between">
           <div className="flex w-full flex-col md:space-y-4">
             <Header />
-            <div>{children}</div>
+            <div className="h-screen overflow-auto px-4 pb-24 md:px-6">{children}</div>
           </div>
         </div>
       </main>
@@ -21,4 +22,4 @@ function Layout({ children }: PropsWithChildren) {
   );
 }
 
-export default Layout;
+export default withPageAuthRequired(Layout); // withPageAuthRequired HOC , access only if the user is authenticated
