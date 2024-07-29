@@ -13,7 +13,7 @@ export const formatCurrency = (value: number) => {
   return currencyFormatter.format(value);
 };
 
-export const convertToCents = (amount: number): number => new Big(amount).times(100).toNumber();
+export const toCents = (amount: number): number => new Big(amount).times(100).toNumber();
 
-export const convertCurrencyNumber = (amount: string): number => parseFloat(amount.replace(',', '.'));
+export const convertCurrencyToNumber = (amount: string): number => parseFloat(amount.replace(',', '.'));
 export const isAmountWithinRange = (amount: number): boolean => MAX_VALUE * -1 <= amount && amount <= MAX_VALUE;
