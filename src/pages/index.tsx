@@ -1,7 +1,7 @@
-import { type NextPage } from "next";
+import { type NextPage } from 'next';
 
-const overview: NextPage = () => {
+const Overview: NextPage = () => {
   return <div>Overview</div>;
 };
 
-export default overview;
+export default Overview;
