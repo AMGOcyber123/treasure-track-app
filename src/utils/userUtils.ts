@@ -5,7 +5,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 export const getUserId = async (
   req: NextApiRequest | IncomingMessage,
   res: NextApiResponse | ServerResponse
-): Promise<string | undefined> => {
+): Promise<string> => {
   const session: Session | null | undefined = await getSession(req, res);
   return session?.user.sub as string;
 };

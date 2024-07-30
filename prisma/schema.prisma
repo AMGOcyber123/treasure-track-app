@@ -21,7 +21,7 @@ model User {
 model BankAccount {
     id            Int           @id @default(autoincrement())
     accountNumber String
-    balance       BigInt
+    balance       Int
     User          User          @relation(fields: [userId], references: [id])
     userId        String
     transaction   Transaction[]
