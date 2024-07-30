@@ -1,60 +1,47 @@
-import { useEffect, useState } from "react";
-import { z } from "zod";
-import { useForm, SubmitHandler } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "~/components/ui/dialog";
-import { Button } from "~/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
-import { createBankAccount } from "~/services/bankAccount.service";
-import { useMutation } from "@tanstack/react-query";
-import { BankAccount } from "@prisma/client";
-import { CreateBankAccountDetails } from "~/types/BankAccount.types";
-import { convertCurrencyToNumber } from "~/utils/numberUtils";
-import { Toaster } from "~/components/ui/toaster";
-import { useToast } from "~/components/ui/use-toast";
+import { Button } from '~/components/ui/button';
+import CurrencyInput from '~/components/ui/CurrencyInput';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog';
+import { createBankAccount } from '~/services/bankAccount.service';
+import { useToast } from '~/components/ui/use-toast';
+import { BankAccount, CreateBankAccountDetails } from '~/types/BankAccount.types';
+import { convertCurrencyToNumber, isAmountWithinRange, MAX_VALUE } from '~/utils/numberUtils';
+import { useMutation } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '~/components/ui/form';
+import { Input } from '~/components/ui/input';
 
 const formSchema = z.object({
   accountNumber: z
     .string()
-    .min(1, { message: "Account number is empty" })
-    .max(50, {
-      message: "Account number should be shorter than 50 characters",
-    }),
+    .min(1, { message: 'Account number is empty' })
+    .max(50, { message: 'Account number should be shorter than 50 characters' }),
   balance: z
     .string({
-      required_error: "Balance is empty",
+      required_error: 'Balance is empty',
     })
-    .refine((value) => !isNaN(Number(value)) && Number(value) >= 0, {
-      message: "Balance should be a non-negative number",
-    }),
+    .refine(
+      (value) => {
+        return isAmountWithinRange(convertCurrencyToNumber(value));
+      },
+      { message: `Balance should be between -${MAX_VALUE} and ${MAX_VALUE}` }
+    ),
 });
 
 const BankAccountForm = () => {
-  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-  const { toast } = useToast();
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      accountNumber: "",
-      balance: "0",
-    },
-    mode: "onChange",
-  });
+    const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+    const { toast } = useToast();
+  
+    const form = useForm<z.infer<typeof formSchema>>({
+      resolver: zodResolver(formSchema),
+      defaultValues: {
+        accountNumber: '',
+      },
+      mode: 'onChange',
+    });
 
   const createMutation = useMutation({
     mutationFn: createBankAccount,
@@ -66,11 +53,11 @@ const BankAccountForm = () => {
       setIsDialogOpen(false);
     },
     onError: () => {
-        toast({
-            variant:'destructive', 
-            title: 'Uh Oh! Something went wrong.',
-            description: 'Please try again later.'
-        });
+      toast({
+        variant: "destructive",
+        title: "Uh Oh! Something went wrong.",
+        description: "Please try again later.",
+      });
     },
   });
 
@@ -96,7 +83,7 @@ const BankAccountForm = () => {
           <DialogTitle>Create new bank account</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form className="space-y-4">
             <FormField
               name="accountNumber"
               control={form.control}
@@ -104,44 +91,37 @@ const BankAccountForm = () => {
                 <FormItem>
                   <FormLabel>Account Number</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter account number" {...field} />
+                    <Input placeholder="Enter Your Account Number" {...field} />
                   </FormControl>
-                  {form.formState.errors.accountNumber && (
-                    <FormMessage>
-                      {form.formState.errors.accountNumber.message}
-                    </FormMessage>
-                  )}
+                  <FormMessage />
                 </FormItem>
               )}
             />
             <FormField
               name="balance"
               control={form.control}
-              render={({ field }) => (
+              render={({ field: { value, onChange } }) => (
                 <FormItem>
                   <FormLabel>Balance</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Enter balance"
-                      {...field}
-                    />
+                    <CurrencyInput value={value} onValueChange={(value) => onChange(value)} />
                   </FormControl>
-                  {form.formState.errors.balance && (
-                    <FormMessage>
-                      {form.formState.errors.balance.message}
-                    </FormMessage>
-                  )}
+                  <FormMessage />
                 </FormItem>
               )}
             />
-            <DialogFooter>
-              <Button type="submit" disabled={!form.formState.isValid}>
-                Confirm
-              </Button>
-            </DialogFooter>
           </form>
         </Form>
+        <DialogFooter>
+          <Button
+            type="button"
+            disabled={!form.formState.isValid || createMutation.isPending}
+            onClick={form.handleSubmit(onSubmit)}
+          >
+            {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Confirm
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
