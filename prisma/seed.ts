@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { faker } from '@faker-js/faker';
 import { prisma } from '../src/server/db';
-import { convertToCents } from '../src/utils/numberUtils';
+import { toCents } from '../src/utils/numberUtils';
 
 const seedData = async (userId: string) => {
   try {
@@ -31,7 +31,7 @@ const seedData = async (userId: string) => {
     const bankAccount = await prisma.bankAccount.create({
       data: {
         accountNumber: faker.finance.bic({ includeBranchCode: true }),
-        balance: convertToCents(faker.number.int({ min: 10, max: 15000 })),
+        balance: toCents(faker.number.int({ min: 10, max: 15000 })),
         userId,
       },
     });
@@ -50,7 +50,7 @@ const seedData = async (userId: string) => {
               .fill({})
               .map(() => ({
                 bankAccountId: bankAccount.id,
-                amount: convertToCents(Number(faker.finance.amount(1000, 5000))),
+                amount: toCents(Number(faker.finance.amount(1000, 5000))),
                 date: faker.date.recent({ days: 20 }),
                 userId,
                 note: faker.finance.transactionDescription(),
@@ -75,7 +75,7 @@ const seedData = async (userId: string) => {
               .fill({})
               .map(() => ({
                 bankAccountId: bankAccount.id,
-                amount: convertToCents(Number(faker.finance.amount(10, 200))),
+                amount: toCents(Number(faker.finance.amount(10, 200))),
                 recipient: faker.company.name(),
                 note: faker.finance.transactionDescription(),
                 date: faker.date.recent({ days: 20 }),
